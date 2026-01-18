@@ -1,5 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
-const JSON_SERVER_URL = 'feedback-app-production-20af.up.railway.app';
+const JSON_SERVER_URL = import.meta.env.PROD
+    ? 'https://feedback-app-production-20af.up.railway.app/feedback'
+    : 'http://localhost:5000/feedback'
 
 
 const FeedbackContext = createContext()
