@@ -1,7 +1,5 @@
 import { createContext, useState, useEffect } from 'react'
-const JSON_SERVER_URL = import.meta.env.PROD
-    ? 'https://feedback-app-production-20af.up.railway.app/feedback'
-    : 'http://localhost:5000/feedback'
+const JSON_SERVER_URL = 'feedback-app-production-20af.up.railway.app';
 
 
 const FeedbackContext = createContext()
@@ -14,62 +12,73 @@ export const FeedbackProvider = ({ children }) => {
     edit: false,
   })
   useEffect(() => {
+    console.log('Fetching feedback from:', JSON_SERVER_URL)
     fetchFeedback()
   }, [])
 
-  // Fetch feedback
+  // Fetch feedback with error handling
   const fetchFeedback = async () => {
-    const response = await fetch(`${JSON_SERVER_URL}?_sort=id&_order=desc`)
-    const data = await response.json()
+    try {
+      const response = await fetch(`${JSON_SERVER_URL}?_sort=id&_order=desc`)
 
-    setFeedback(data)
-    setIsLoading(false)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setFeedback(data)
+    } catch (error) {
+      console.error('Failed to fetch feedback:', error)
+      // Optionally show an error message to the user
+    } finally {
+      // ALWAYS stop loading
+      setIsLoading(false)
+    }
   }
+
 
 
 
   // Add feedback
   const addFeedback = async (newFeedback) => {
-    const response = await fetch(JSON_SERVER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newFeedback),
-    })
-
-    const data = await response.json()
-
-    setFeedback([data, ...feedback])
+    try {
+      const response = await fetch(JSON_SERVER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFeedback),
+      })
+      const data = await response.json()
+      setFeedback([data, ...feedback])
+    } catch (error) {
+      console.error('Failed to add feedback:', error)
+    }
   }
 
   // Delete feedback
   const deleteFeedback = async (id) => {
-    if (window.confirm('Are you sure you want to delete?')) {
-        await fetch(`${JSON_SERVER_URL}/${id}`, { method: 'DELETE' })
-
+    if (!window.confirm('Are you sure you want to delete?')) return
+    try {
+      await fetch(`${JSON_SERVER_URL}/${id}`, { method: 'DELETE' })
       setFeedback(feedback.filter((item) => item.id !== id))
+    } catch (error) {
+      console.error('Failed to delete feedback:', error)
     }
   }
 
   // Update feedback item
   const updateFeedback = async (id, updItem) => {
-    const response = await fetch(`${JSON_SERVER_URL}/${id}`, {
+    try {
+      const response = await fetch(`${JSON_SERVER_URL}/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updItem),
       })
-
-    const data = await response.json()
-
-    setFeedback(feedback.map((item) => (item.id === id ? data : item)))
-
-    setFeedbackEdit({
-      item: {},
-      edit: false,
-    })
+      const data = await response.json()
+      setFeedback(feedback.map((item) => (item.id === id ? data : item)))
+      setFeedbackEdit({ item: {}, edit: false })
+    } catch (error) {
+      console.error('Failed to update feedback:', error)
+    }
   }
 
   // Set item to be updated
