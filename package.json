@@ -9,10 +9,6 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "json-server --watch db.json --host 0.0.0.0 --port $PORT"
-<<<<<<< HEAD
-=======
-
->>>>>>> 9b19282 (Final Commit)
   },
   "dependencies": {
     "concurrently": "^9.2.1",
